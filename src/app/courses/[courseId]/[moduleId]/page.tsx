@@ -7,7 +7,9 @@ import Footer from '@/components/Footer';
 import { getCourseById, getQuizByIds } from '@/data/courseData';
 import Link from 'next/link';
 
-export default function QuizPage({ params }: { params: { courseId: string; moduleId: string } }) {
+
+export default function QuizPage({ params }: any) {
+  
   const router = useRouter();
   const course = getCourseById(params.courseId);
   const quiz = getQuizByIds(params.courseId, params.moduleId);
