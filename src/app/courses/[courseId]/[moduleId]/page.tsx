@@ -21,7 +21,7 @@ export default function QuizPage({ params }: any) {
   
   if (!course || !quiz) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="bg-gray-50">
         <Navbar />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
           <h1 className="text-3xl font-bold text-gray-900">Quiz not found</h1>
@@ -65,7 +65,7 @@ export default function QuizPage({ params }: any) {
   const moduleTitle = course.roadmap.find(module => module.id === params.moduleId)?.title || quiz.title;
   
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <Navbar />
       
       <main className="pb-16">

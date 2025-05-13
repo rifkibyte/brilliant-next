@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function CoursesPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <Navbar />
       
       <main>

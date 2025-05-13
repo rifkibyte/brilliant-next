@@ -12,7 +12,7 @@ export default function CourseDetailPage({ params }: any) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="bg-gray-50">
       <Navbar />
 
       <main>
