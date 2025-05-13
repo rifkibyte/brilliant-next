@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -11,14 +11,54 @@ export default function Navbar({ isLoggedIn = true }) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
   const pathname = usePathname();
+  
+  // Refs untuk dropdown dan streak modal
+  const dropdownRef = useRef(null);
+  const streakModalRef = useRef(null);
+  const dropdownButtonRef = useRef(null);
+  const streakButtonRef = useRef(null);
 
-  const toggleDropdown = () => {
+  const toggleDropdown = (e) => {
+    e.stopPropagation(); // Mencegah event bubbling
     setIsDropdownOpen(!isDropdownOpen);
+    setIsStreakModalOpen(false); // Tutup streak modal
   };
 
-  const toggleStreakModal = () => {
+  const toggleStreakModal = (e) => {
+    e.stopPropagation(); // Mencegah event bubbling
     setIsStreakModalOpen(!isStreakModalOpen);
+    setIsDropdownOpen(false); // Tutup dropdown
   };
+
+  // Fungsi untuk menutup semua dropdown
+  const closeAllDropdowns = () => {
+    if (isDropdownOpen) setIsDropdownOpen(false);
+    if (isStreakModalOpen) setIsStreakModalOpen(false);
+  };
+
+  // Effect untuk menangani klik di dokumen
+  useEffect(() => {
+    // Handler untuk menutup dropdown ketika mengklik di luar
+    const handleDocumentClick = (e) => {
+      // Jika klik bukan pada dropdown/streak button atau kontennya
+      const clickedOnDropdownButton = dropdownButtonRef.current && dropdownButtonRef.current.contains(e.target);
+      const clickedOnDropdown = dropdownRef.current && dropdownRef.current.contains(e.target);
+      const clickedOnStreakButton = streakButtonRef.current && streakButtonRef.current.contains(e.target);
+      const clickedOnStreakModal = streakModalRef.current && streakModalRef.current.contains(e.target);
+
+      if (!clickedOnDropdownButton && !clickedOnDropdown && !clickedOnStreakButton && !clickedOnStreakModal) {
+        closeAllDropdowns();
+      }
+    };
+
+    // Tambahkan event listener
+    document.addEventListener("click", handleDocumentClick);
+    
+    // Cleanup event listener
+    return () => {
+      document.removeEventListener("click", handleDocumentClick);
+    };
+  }, [isDropdownOpen, isStreakModalOpen]);
 
   // Navigation links with active state
   const navLinks = [
@@ -34,7 +74,7 @@ export default function Navbar({ isLoggedIn = true }) {
           <div className="flex items-center">
             {/* Logo - Hidden on mobile */}
             <div className="flex-shrink-0 hidden md:flex items-center">
-              <Link href="/" className="flex items-center md:mr-6">
+              <Link href="/home" className="flex items-center md:mr-6" onClick={closeAllDropdowns}>
                 <span className="text-2xl font-bold text-gray-900">
                   Brilliant
                 </span>
@@ -50,6 +90,7 @@ export default function Navbar({ isLoggedIn = true }) {
                     <Link
                       key={link.href}
                       href={link.href}
+                      onClick={closeAllDropdowns}
                       className={`px-3 py-2 text-lg font-medium relative ${
                         isActive
                           ? "text-gray-900 bg-blue-100"
@@ -74,6 +115,7 @@ export default function Navbar({ isLoggedIn = true }) {
                 {/* Premium Gift Button */}
                 <Link
                   href="/premium"
+                  onClick={closeAllDropdowns}
                   className="border border-green-600 text-green-600 hover:bg-green-50 px-4 py-2 rounded-full text-lg font-medium mr-3"
                 >
                   Premium
@@ -82,8 +124,9 @@ export default function Navbar({ isLoggedIn = true }) {
                 {/* Points Button */}
                 <div className="relative">
                   <button
+                    ref={streakButtonRef}
                     onClick={toggleStreakModal}
-                    className="md:bg-yellow-400 md:hover:bg-yellow-500 text-gray-900 px-4 py-2 rounded-full text-lg font-medium mr-3 flex items-center"
+                    className="md:bg-yellow-400 md:hover:bg-yellow-600 text-gray-900 px-4 py-2 rounded-full text-lg font-medium mr-3 flex items-center"
                   >
                     <span>154</span>
                     <AiFillThunderbolt className="text-yellow-500 md:text-gray-900" />
@@ -91,7 +134,11 @@ export default function Navbar({ isLoggedIn = true }) {
 
                   {/* Streak Modal Dropdown */}
                   {isStreakModalOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 z-50">
+                    <div 
+                      ref={streakModalRef}
+                      className="origin-top-right absolute right-0 mt-2 w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 z-50"
+                      onClick={(e) => e.stopPropagation()} // Mencegah event bubbling
+                    >
                       <div className="p-4">
                         {/* Header with streak info */}
                         <div className="flex items-center space-x-3 mb-2">
@@ -133,27 +180,28 @@ export default function Navbar({ isLoggedIn = true }) {
                 {/* User Menu with Animated Burger */}
                 <div className="relative">
                   <button
+                    ref={dropdownButtonRef}
                     onClick={toggleDropdown}
-                    className="p-1 rounded-md hover:bg-gray-100 focus:outline-none w-8 h-8 flex items-center justify-center"
+                    className="p-1 rounded-md focus:outline-none w-8 h-8 flex items-center justify-center"
                     aria-expanded={isDropdownOpen}
                     aria-haspopup="true"
                   >
                     <div className="w-6 h-6 relative">
                       {/* Top line */}
                       <span
-                        className={`absolute h-0.5 w-6 bg-yellow-500 transform transition-all duration-300 ease-in-out ${
+                        className={`absolute h-0.5 w-6 bg-gray-900 transform transition-all duration-300 ease-in-out ${
                           isDropdownOpen ? "rotate-45 top-3" : "top-1"
                         }`}
                       />
                       {/* Middle line */}
                       <span
-                        className={`absolute h-0.5 w-6 bg-yellow-500 top-3 transition-all duration-200 ease-in-out ${
+                        className={`absolute h-0.5 w-6 bg-gray-900 top-3 transition-all duration-200 ease-in-out ${
                           isDropdownOpen ? "opacity-0" : "opacity-100"
                         }`}
                       />
                       {/* Bottom line */}
                       <span
-                        className={`absolute h-0.5 w-6 bg-yellow-500 transform transition-all duration-300 ease-in-out ${
+                        className={`absolute h-0.5 w-6 bg-gray-900 transform transition-all duration-300 ease-in-out ${
                           isDropdownOpen ? "-rotate-45 top-3" : "top-5"
                         }`}
                       />
@@ -162,23 +210,32 @@ export default function Navbar({ isLoggedIn = true }) {
 
                   {/* Dropdown Menu */}
                   {isDropdownOpen && (
-                    <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100">
+                    <div 
+                      ref={dropdownRef}
+                      className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 divide-y divide-gray-100"
+                      onClick={(e) => e.stopPropagation()} // Mencegah event bubbling
+                    >
                       <div className="py-1">
                         <Link
                           href="/account"
+                          onClick={closeAllDropdowns}
                           className="block px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
                         >
                           Account
                         </Link>
                         <Link
                           href="/help"
+                          onClick={closeAllDropdowns}
                           className="block px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
                         >
                           Help
                         </Link>
                         <button
                           className="block w-full text-left px-4 py-2 text-lg text-gray-700 hover:bg-gray-100"
-                          onClick={() => console.log("Log out")}
+                          onClick={() => {
+                            closeAllDropdowns();
+                            console.log("Log out");
+                          }}
                         >
                           Log out
                         </button>
@@ -192,6 +249,7 @@ export default function Navbar({ isLoggedIn = true }) {
                 {/* Login Button */}
                 <Link
                   href="/login"
+                  onClick={closeAllDropdowns}
                   className="border border-gray-300 text-gray-700 hover:bg-gray-50 px-6 py-2 rounded-full text-lg font-medium mr-3"
                 >
                   Log in
@@ -200,6 +258,7 @@ export default function Navbar({ isLoggedIn = true }) {
                 {/* Get Started Button */}
                 <Link
                   href="/signup"
+                  onClick={closeAllDropdowns}
                   className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-full text-lg font-medium"
                 >
                   Get started
